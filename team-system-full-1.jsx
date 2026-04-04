@@ -31,7 +31,7 @@ const RC = { team_leader:"#00c9f7", builder:"#06b6d4", sales:"#f97316", content:
 
 const MEMBERS = [
   { id:"rawan",   name:"Rawan Alaa",           phone:"01150156437", role:"team_leader", hours:"5-10",  isAdmin:true },
-  { id:"wafaa",   name:"Wafaa Elkady",          phone:"01227211080", role:"builder",     hours:"10-15" },
+  { id:"hassan",  name:"Hassan Wael",          phone:"01000765342", role:"builder",     hours:"10-15" },
   { id:"mahdy",   name:"Mohamed Mahdy",         phone:"01101891846", role:"builder",     hours:"5-10",  isSubLeader:true, subTeams:["builder"] },
   { id:"elsayed", name:"Mohamed Elsayed",       phone:"01508783863", role:"builder",     hours:"5-10" },
   { id:"hussein", name:"Hussein Afifi",         phone:"01113023088", role:"sales",       hours:"5-10" },
@@ -44,8 +44,8 @@ const MEMBERS = [
   { id:"mona",    name:"Mona Ahmad",            phone:"01099287237", role:"operation",   hours:"5-10",  isAdmin:true },
 ];
 
-const AV = { rawan:"RW", wafaa:"WK", mahdy:"MM", elsayed:"ME", hussein:"HA", manar_m:"MG", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
-const CLR = { rawan:"#00c9f7", wafaa:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", manar_m:"#fb923c", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
+const AV = { rawan:"RW", hassan:"HW", mahdy:"MM", elsayed:"ME", hussein:"HA", manar_m:"MG", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
+const CLR = { rawan:"#00c9f7", hassan:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", manar_m:"#fb923c", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STORAGE
