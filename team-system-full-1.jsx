@@ -79,10 +79,13 @@ const calcPts = (log) => {
   let rev  = (log.revenue  || 0) * 1;
   let lead = (log.leads    || 0) * 5;
   let cont = (log.posts    || 0) * 2 + (log.videos || 0) * 5;
+  let build = (log.buildDemos || 0) * 50 + (log.buildTemplates || 0) * 10;
+  if (log.tasksDesc && log.tasksDesc.trim().length > 0) build += 20;
+
   if (log.doublePoints) rev *= 2;
   return {
-    rev, lead, cont,
-    total: Math.round(rev * 0.7 + lead * 0.2 + cont * 0.1),
+    rev, lead, cont, build,
+    total: Math.round(rev * 0.7 + lead * 0.2 + cont * 0.1 + build),
   };
 };
 
@@ -91,8 +94,8 @@ const memberPts = (memberId, logs, range = "week") => {
   const filtered = logs.filter(l => l.memberId === memberId && (range === "month" ? l.date.startsWith(cut) : l.date >= cut));
   return filtered.reduce((acc, l) => {
     const p = calcPts(l);
-    return { rev: acc.rev + p.rev, lead: acc.lead + p.lead, cont: acc.cont + p.cont, total: acc.total + p.total };
-  }, { rev: 0, lead: 0, cont: 0, total: 0 });
+    return { rev: acc.rev + p.rev, lead: acc.lead + p.lead, cont: acc.cont + p.cont, build: (acc.build||0) + (p.build||0), total: acc.total + p.total };
+  }, { rev: 0, lead: 0, cont: 0, build: 0, total: 0 });
 };
 
 const memberWeekStats = (memberId, logs) => {
@@ -264,7 +267,7 @@ const Login = ({ onLogin }) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DailyLogForm = ({ user, logs, onSubmit }) => {
   const existing = logs.find(l => l.memberId === user.id && l.date === TODAY);
-  const emptyF   = { didToday:"", results:"", tomorrow:"", revenue:0, dms:0, closings:0, leads:0, posts:0, videos:0, tasksDesc:"", opUpdate:"", doublePoints:false, screenshots:false };
+  const emptyF   = { didToday:"", results:"", tomorrow:"", revenue:0, dms:0, closings:0, leads:0, posts:0, videos:0, buildDemos:0, buildTemplates:0, tasksDesc:"", opUpdate:"", doublePoints:false, screenshots:false };
   const [form, setForm]       = useState(existing || emptyF);
   const [editing, setEditing] = useState(!existing);
   const up = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -293,7 +296,7 @@ const DailyLogForm = ({ user, logs, onSubmit }) => {
           <div style={{ fontWeight:"900", fontSize:"15px", color:"#22c55e" }}>سجّلت يومك النهارده!</div>
           <div style={{ color:C.muted, fontSize:"12px", marginTop:"3px" }}>{TODAY}</div>
           <div style={{ display:"flex", justifyContent:"center", gap:"16px", marginTop:"14px", flexWrap:"wrap" }}>
-            {[{l:"إيراد",v:p.rev,c:"#f97316"},{l:"Leads",v:p.lead,c:"#00c9f7"},{l:"Content",v:p.cont,c:"#a855f7"},{l:"الإجمالي",v:p.total,c:"#22c55e"}].map((x,i) => (
+            {[{l:"إيراد",v:p.rev,c:"#f97316"},{l:"Leads",v:p.lead,c:"#00c9f7"},{l:"Content",v:p.cont,c:"#a855f7"},{l:"Builder",v:p.build||0,c:"#06b6d4"},{l:"الإجمالي",v:p.total,c:"#22c55e"}].map((x,i) => (
               <div key={i} style={{ textAlign:"center" }}>
                 <div style={{ fontFamily:"'Space Mono',monospace", fontWeight:"700", color:x.c, fontSize:"18px" }}>{x.v}</div>
                 <div style={{ fontSize:"9px", color:C.muted, marginTop:"2px" }}>{x.l}</div>
@@ -412,9 +415,16 @@ const DailyLogForm = ({ user, logs, onSubmit }) => {
       {isBuilder && (
         <Card>
           <ST color="#06b6d4">🔧 بيانات Builder</ST>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px", marginBottom:"10px" }}>
+            <NumField label="Demos / مشاريع 🚀 (+50)" val={form.buildDemos} onChange={v => up("buildDemos", v)} color="#06b6d4" />
+            <NumField label="Templates / Auto (+10)" val={form.buildTemplates} onChange={v => up("buildTemplates", v)} color="#38bdf8" />
+          </div>
+          <div style={{ fontSize:"10px", color:C.muted, padding:"8px", background:"#06b6d410", borderRadius:"7px", marginBottom:"12px" }}>
+            🎁 بونص ثابت: 20 نقطة بمجرد كتابة الريبورت والتفاصيل!
+          </div>
           <div>
             <label style={{ fontSize:"10px", color:C.muted, display:"block", marginBottom:"5px", fontWeight:"700" }}>إيه اللي بنيته / طورته النهارده؟</label>
-            <TA placeholder="Demo جهزته، Template، Automation، Prompt، Sheet، Script..." value={form.tasksDesc} onChange={e => up("tasksDesc", e.target.value)} />
+            <TA placeholder="تفاصيل الـ Demo جهزته، Template، Automation، Prompt، Sheet، Script..." value={form.tasksDesc} onChange={e => up("tasksDesc", e.target.value)} />
           </div>
         </Card>
       )}
@@ -453,7 +463,7 @@ const DailyLogForm = ({ user, logs, onSubmit }) => {
       <div style={{ background:`${col}0e`, border:`1px solid ${col}25`, borderRadius:"11px", padding:"14px" }}>
         <div style={{ fontSize:"10px", color:C.muted, marginBottom:"10px", fontWeight:"700" }}>💎 نقاطك المتوقعة النهارده</div>
         <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
-          {[{l:"إيراد (٧٠٪)", v:pts.rev, c:"#f97316"}, {l:"Leads (٢٠٪)", v:pts.lead, c:"#00c9f7"}, {l:"Content (١٠٪)", v:pts.cont, c:"#a855f7"}, {l:"الإجمالي", v:pts.total, c:col}].map((x, i) => (
+          {[{l:"إيراد (٧٠٪)", v:pts.rev, c:"#f97316"}, {l:"Leads (٢٠٪)", v:pts.lead, c:"#00c9f7"}, {l:"Content (١٠٪)", v:pts.cont, c:"#a855f7"}, {l:"Builder", v:pts.build||0, c:"#06b6d4"}, {l:"الإجمالي", v:pts.total, c:col}].map((x, i) => (
             <div key={i} style={{ flex:1, minWidth:"60px", textAlign:"center", background:`${x.c}10`, borderRadius:"8px", padding:"8px 6px" }}>
               <div style={{ fontFamily:"'Space Mono',monospace", fontWeight:"700", color:x.c, fontSize:"16px" }}>{x.v}</div>
               <div style={{ fontSize:"9px", color:C.muted, marginTop:"2px" }}>{x.l}</div>
@@ -539,7 +549,7 @@ const MemberView = ({ user, logs, tasks, onSubmit, onLogout }) => {
             {/* Points breakdown */}
             <Card>
               <ST>توزيع النقاط الأسبوعية</ST>
-              {[{l:"نقاط الإيراد (وزن ٧٠٪)",v:pts.rev,c:"#f97316",max:200},{l:"نقاط Leads (وزن ٢٠٪)",v:pts.lead,c:"#00c9f7",max:50},{l:"نقاط Content (وزن ١٠٪)",v:pts.cont,c:"#a855f7",max:70}].map((p,i) => (
+              {[{l:"نقاط الإيراد",v:pts.rev,c:"#f97316",max:200},{l:"نقاط Leads",v:pts.lead,c:"#00c9f7",max:50},{l:"نقاط Content",v:pts.cont,c:"#a855f7",max:70},{l:"نقاط Builder",v:pts.build||0,c:"#06b6d4",max:150}].map((p,i) => (
                 <div key={i} style={{ marginBottom:"11px" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:"11px", marginBottom:"4px" }}>
                     <span style={{ color:C.muted }}>{p.l}</span>
@@ -566,6 +576,20 @@ const MemberView = ({ user, logs, tasks, onSubmit, onLogout }) => {
                       <div style={{ fontSize:"10px", color:C.muted, margin:"2px 0" }}>{k.l}</div>
                       <div style={{ fontSize:"9px", color:k.c, opacity:.7, marginBottom:"5px" }}>{k.note}</div>
                       <PBar pct={(k.v/k.target)*100} color={k.c} h={4} />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {(user.role === "builder" || user.extraRole === "builder") && (
+              <Card>
+                <ST color="#06b6d4">KPIs Builder — هذا الأسبوع</ST>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
+                  {[{l:"Demos / مشاريع",v:logs.filter(l=>l.memberId===user.id&&l.date>=weekStart).reduce((a,l)=>a+(l.buildDemos||0),0),c:"#06b6d4"},{l:"Templates / Auto",v:logs.filter(l=>l.memberId===user.id&&l.date>=weekStart).reduce((a,l)=>a+(l.buildTemplates||0),0),c:"#38bdf8"}].map((k,i) => (
+                    <div key={i} style={{ background:`${k.c}0e`, border:`1px solid ${k.c}20`, borderRadius:"9px", padding:"12px", textAlign:"center" }}>
+                      <div style={{ fontFamily:"'Space Mono',monospace", fontWeight:"700", color:k.c, fontSize:"22px" }}>{k.v}</div>
+                      <div style={{ fontSize:"10px", color:C.muted, margin:"3px 0" }}>{k.l}</div>
                     </div>
                   ))}
                 </div>
@@ -669,7 +693,7 @@ const AdminDashboard = ({ user, logs, tasks, onAddTask, onDeleteTask, onLogout }
 
   const pieData = [
     { name:"Sales",    value:logs.filter(l=>MEMBERS.find(m=>m.id===l.memberId&&m.role==="sales")).reduce((a,l)=>a+(l.revenue||0),0) || 1, color:"#f97316" },
-    { name:"Builder",  value:1, color:"#06b6d4" },
+    { name:"Builder",  value:logs.filter(l=>l.date>=weekStart).reduce((a,l)=>a+(calcPts(l).build||0),0) || 1, color:"#06b6d4" },
     { name:"Content",  value:logs.filter(l=>l.date>=weekStart).reduce((a,l)=>a+calcPts(l).cont,0) || 1, color:"#a855f7" },
     { name:"Operation",value:1, color:"#22c55e" },
   ];
@@ -986,7 +1010,7 @@ const AdminDashboard = ({ user, logs, tasks, onAddTask, onDeleteTask, onLogout }
                     <PBar pct={pts.total/5} color={col} h={6} />
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"6px" }}>
-                    {[{l:"إيراد",v:`$${wst.revenue}`,c:"#f97316"},{l:"DMs",v:wst.dms,c:"#06b6d4"},{l:"Leads",v:wst.leads,c:"#00c9f7"},{l:"Posts",v:wst.posts,c:"#a855f7"},{l:"Videos",v:wst.videos,c:"#9333ea"},{l:"أيام مسجّلة",v:wst.days,c:col}].map((s,i) => (
+                    {[{l:"إيراد",v:`$${wst.revenue}`,c:"#f97316"},{l:"DMs",v:wst.dms,c:"#06b6d4"},{l:"Leads",v:wst.leads,c:"#00c9f7"},{l:"Posts / Vids",v:`${wst.posts}/${wst.videos}`,c:"#a855f7"},{l:"نقاط بناء",v:pts.build||0,c:"#38bdf8"},{l:"أيام مسجّلة",v:wst.days,c:col}].map((s,i) => (
                       <div key={i} style={{ background:`${s.c}0d`, borderRadius:"7px", padding:"6px", textAlign:"center" }}>
                         <div style={{ fontFamily:"'Space Mono',monospace", fontWeight:"700", color:s.c, fontSize:"12px" }}>{s.v}</div>
                         <div style={{ fontSize:"8px", color:C.muted, marginTop:"1px" }}>{s.l}</div>
