@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { db } from "./src/firebase";
-import { collection, getDocs, setDoc, doc, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, setDoc, doc, query, orderBy, addDoc, deleteDoc } from "firebase/firestore";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FONTS & GLOBAL STYLES
@@ -35,7 +35,6 @@ const MEMBERS = [
   { id:"mahdy",   name:"Mohamed Mahdy",         phone:"01101891846", role:"builder",     hours:"5-10",  isSubLeader:true, subTeams:["builder"] },
   { id:"elsayed", name:"Mohamed Elsayed",       phone:"01508783863", role:"builder",     hours:"5-10" },
   { id:"hussein", name:"Hussein Afifi",         phone:"01113023088", role:"sales",       hours:"5-10" },
-  { id:"manar_m", name:"Manar Magdy",           phone:"01142683336", role:"sales",       hours:"5-10",  extraRole:"content" },
   { id:"mahmoud", name:"Mahmoud Medhat",        phone:"01014127767", role:"sales",       hours:"10-15", isSubLeader:true, subTeams:["sales","content"] },
   { id:"manar_a", name:"Manar Ahmed",           phone:"01121267772", role:"content",     hours:"5-10" },
   { id:"aya",     name:"Aya Elshenawy",         phone:"01223533000", role:"content",     hours:"5-10" },
@@ -44,8 +43,8 @@ const MEMBERS = [
   { id:"mona",    name:"Mona Ahmad",            phone:"01099287237", role:"operation",   hours:"5-10",  isAdmin:true },
 ];
 
-const AV = { rawan:"RW", hassan:"HW", mahdy:"MM", elsayed:"ME", hussein:"HA", manar_m:"MG", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
-const CLR = { rawan:"#00c9f7", hassan:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", manar_m:"#fb923c", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
+const AV = { rawan:"RW", hassan:"HW", mahdy:"MM", elsayed:"ME", hussein:"HA", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
+const CLR = { rawan:"#00c9f7", hassan:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STORAGE
@@ -473,7 +472,7 @@ const DailyLogForm = ({ user, logs, onSubmit }) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MEMBER VIEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const MemberView = ({ user, logs, onSubmit, onLogout }) => {
+const MemberView = ({ user, logs, tasks, onSubmit, onLogout }) => {
   const [tab, setTab] = useState("daily");
   const col  = CLR[user.id];
   const pts  = memberPts(user.id, logs, "week");
@@ -500,6 +499,18 @@ const MemberView = ({ user, logs, onSubmit, onLogout }) => {
           <button onClick={onLogout} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:"7px", padding:"6px 11px", color:C.muted, cursor:"pointer", fontFamily:"'Cairo',sans-serif", fontSize:"11px" }}>خروج</button>
         </div>
       </div>
+
+      {/* Team Tasks (Global) */}
+      {tasks?.length > 0 && (
+        <div style={{ margin:"14px 16px 0", background:"#a855f715", border:"1px solid #a855f730", padding:"12px", borderRadius:"10px", animation:"fadeIn .5s ease" }}>
+          <div style={{ fontSize:"11px", color:"#a855f7", fontWeight:"700", marginBottom:"6px", display:"flex", alignItems:"center", gap:"5px" }}>
+            <span style={{fontSize:"14px"}}>📌</span> مهام الفريق المطلوبة:
+          </div>
+          <ul style={{ margin:0, padding:"0 20px", color:C.text, fontSize:"13px", lineHeight:1.6 }}>
+            {tasks.map(t => <li key={t.id}>{t.text}</li>)}
+          </ul>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display:"flex", gap:"2px", padding:"8px 16px 0", borderBottom:`1px solid ${C.border}` }}>
@@ -616,11 +627,12 @@ const MemberView = ({ user, logs, onSubmit, onLogout }) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ADMIN DASHBOARD
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const AdminDashboard = ({ user, logs, onLogout }) => {
+const AdminDashboard = ({ user, logs, tasks, onAddTask, onDeleteTask, onLogout }) => {
   const [tab, setTab]         = useState("overview");
   const [dateFilter, setDateF] = useState(TODAY);
   const [pulse, setPulse]     = useState(false);
   const [logModal, setLogModal] = useState(null); // view full log
+  const [newTask, setNewTask] = useState("");
 
   useEffect(() => { const i = setInterval(() => setPulse(p => !p), 1400); return () => clearInterval(i); }, []);
 
@@ -664,6 +676,7 @@ const AdminDashboard = ({ user, logs, onLogout }) => {
 
   const TABS = [
     {id:"overview",  i:"⚡", l:"القيادة"},
+    {id:"tasks",     i:"📌", l:"المهام", badge:tasks?.length},
     {id:"leaderboard",i:"🏆",l:"الترتيب"},
     {id:"logs",      i:"📋", l:"السجلات", badge:whoMissed.length},
     {id:"team",      i:"👥", l:"الفريق"},
@@ -703,6 +716,57 @@ const AdminDashboard = ({ user, logs, onLogout }) => {
       </div>
 
       <div style={{ padding:"14px 18px", maxHeight:"calc(100vh - 108px)", overflowY:"auto" }}>
+
+        {/* Team Tasks (Global - visible to Admin in overview) */}
+        {tasks?.length > 0 && tab === "overview" && (
+          <div style={{ marginBottom:"14px", background:"#a855f715", border:"1px solid #a855f730", padding:"12px", borderRadius:"10px", animation:"fadeIn .5s ease" }}>
+            <div style={{ fontSize:"11px", color:"#a855f7", fontWeight:"700", marginBottom:"6px", display:"flex", alignItems:"center", gap:"5px" }}>
+              <span style={{fontSize:"14px"}}>📌</span> مهام الفريق المطلوبة:
+            </div>
+            <ul style={{ margin:0, padding:"0 20px", color:C.text, fontSize:"13px", lineHeight:1.6 }}>
+              {tasks.map(t => <li key={t.id}>{t.text}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {/* ═══ TASKS ═══ */}
+        {tab === "tasks" && (
+          <div className="fade-in">
+            {user.id === "rawan" && (
+              <Card style={{ marginBottom: "14px" }}>
+                <ST color="#a855f7">إضافة مهمة جديدة للفريق</ST>
+                <div style={{ display:"flex", gap:"10px" }}>
+                  <Inp placeholder="اكتب المهمة هنا..." value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => {
+                    if (e.key === "Enter" && newTask.trim()) { onAddTask(newTask); setNewTask(""); }
+                  }} />
+                  <Btn color="#a855f7" onClick={() => {
+                    if(newTask.trim()) { onAddTask(newTask); setNewTask(""); }
+                  }}>إضافة 📌</Btn>
+                </div>
+              </Card>
+            )}
+
+            <Card>
+              <ST>مهام الفريق الحالية</ST>
+              {tasks?.length === 0 ? (
+                <div style={{color:C.muted, fontSize:"12px", textAlign:"center", padding:"20px"}}>لا توجد مهام حالياً</div>
+              ) : (
+                <div style={{display:"flex", flexDirection:"column", gap:"8px"}}>
+                  {tasks.map(t => (
+                    <div key={t.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding: "10px", background:`${C.border}30`, borderRadius:"8px" }}>
+                      <div style={{fontSize:"13px"}}>{t.text}</div>
+                      {user.id === "rawan" && (
+                        <button onClick={() => onDeleteTask(t.id)} style={{background:"none", border:"none", color:"#f04060", cursor:"pointer", fontSize:"12px", fontWeight:"700", padding:"4px 8px"}}>
+                          حذف
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
 
         {/* ═══ OVERVIEW ═══ */}
         {tab === "overview" && (
@@ -1158,6 +1222,7 @@ const AdminDashboard = ({ user, logs, onLogout }) => {
 export default function App() {
   const [user,  setUser]  = useState(null);
   const [logs,  setLogs]  = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -1179,12 +1244,38 @@ export default function App() {
         console.error("Error fetching logs: ", e);
       }
 
+      // 3. Fetch Tasks
+      try {
+        const qTasks = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+        const tkSnap = await getDocs(qTasks);
+        const tkList = [];
+        tkSnap.forEach(d => tkList.push({ id: d.id, ...d.data() }));
+        setTasks(tkList);
+      } catch (e) {
+        console.error("Error fetching tasks: ", e);
+      }
+
       setReady(true);
     })();
   }, []);
 
   const handleLogin  = (member) => { setUser(member); saveSession(member); };
   const handleLogout = ()       => { setUser(null);   saveSession(null);   };
+  
+  const handleAddTask = async (text) => {
+    try {
+      const docRef = await addDoc(collection(db, "tasks"), { text, createdAt: new Date().toISOString(), author: user.name });
+      setTasks(p => [{ id: docRef.id, text, createdAt: new Date().toISOString(), author: user.name }, ...p]);
+    } catch(e) { console.error(e); }
+  };
+  
+  const handleDeleteTask = async (id) => {
+    try {
+      await deleteDoc(doc(db, "tasks", id));
+      setTasks(p => p.filter(t => t.id !== id));
+    } catch(e) { console.error(e); }
+  };
+
   const handleLog    = async (log) => {
     // Optimistic Update
     setLogs(prev => {
@@ -1212,8 +1303,8 @@ export default function App() {
     <>
       <style>{GF}</style>
       {!user   ? <Login onLogin={handleLogin} /> :
-       user.isAdmin ? <AdminDashboard user={user} logs={logs} onLogout={handleLogout} /> :
-       <MemberView user={user} logs={logs} onSubmit={handleLog} onLogout={handleLogout} />}
+       user.isAdmin ? <AdminDashboard user={user} logs={logs} tasks={tasks} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} onLogout={handleLogout} /> :
+       <MemberView user={user} logs={logs} tasks={tasks} onSubmit={handleLog} onLogout={handleLogout} />}
     </>
   );
 }
