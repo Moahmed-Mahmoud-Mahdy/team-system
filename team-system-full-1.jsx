@@ -80,7 +80,7 @@ const calcPts = (log) => {
   let lead = (log.leads    || 0) * 5;
   let cont = (log.posts    || 0) * 2 + (log.videos || 0) * 5;
   let build = (log.buildDemos || 0) * 50 + (log.buildTemplates || 0) * 10;
-  if (log.tasksDesc && log.tasksDesc.trim().length > 0) build += 20;
+  if (log.tasksDesc && log.tasksDesc.trim().length > 0) build += 3;
 
   if (log.doublePoints) rev *= 2;
   return {
@@ -420,7 +420,7 @@ const DailyLogForm = ({ user, logs, onSubmit }) => {
             <NumField label="Templates / Auto (+10)" val={form.buildTemplates} onChange={v => up("buildTemplates", v)} color="#38bdf8" />
           </div>
           <div style={{ fontSize:"10px", color:C.muted, padding:"8px", background:"#06b6d410", borderRadius:"7px", marginBottom:"12px" }}>
-            🎁 بونص ثابت: 20 نقطة بمجرد كتابة الريبورت والتفاصيل!
+            🎁 بونص ثابت: 3 نقاط بمجرد كتابة الريبورت والتفاصيل!
           </div>
           <div>
             <label style={{ fontSize:"10px", color:C.muted, display:"block", marginBottom:"5px", fontWeight:"700" }}>إيه اللي بنيته / طورته النهارده؟</label>
