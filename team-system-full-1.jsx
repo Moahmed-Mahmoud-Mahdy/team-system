@@ -190,15 +190,32 @@ const NumField = ({ label, val, onChange, color, unit = "" }) => (
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LOGIN SCREEN
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const Login = ({ onLogin }) => {
-  const [step, setStep]     = useState("list");
-  const [sel,  setSel]      = useState(null);
-  const [phone, setPhone]   = useState("");
-  const [err,   setErr]     = useState("");
+// PASSWORD HELPER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ROLE_INITIAL = { team_leader:"L", builder:"B", content:"C", sales:"S", operation:"O" };
+const getPassword = (member) => {
+  const initial = ROLE_INITIAL[member.role] || "X";
+  const digits  = member.phone.replace(/\D/g, ""); // strip any spaces/dashes
+  const last3   = digits.slice(-3);
+  return initial + last3;
+};
 
-  const verify = () => {
-    if (phone.trim() === sel.phone) onLogin(sel);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const Login = ({ onLogin }) => {
+  const [step,     setStep]     = useState("list");
+  const [sel,      setSel]      = useState(null);
+  const [phone,    setPhone]    = useState("");
+  const [password, setPassword] = useState("");
+  const [err,      setErr]      = useState("");
+
+  const verifyPhone = () => {
+    if (phone.trim() === sel.phone) { setStep("password"); setErr(""); }
     else setErr("رقم التليفون غلط — جرب تاني!");
+  };
+
+  const verifyPassword = () => {
+    if (password.trim() === getPassword(sel)) onLogin(sel);
+    else setErr("كلمة السر غلط — جرب تاني!");
   };
 
   return (
@@ -236,9 +253,9 @@ const Login = ({ onLogin }) => {
               ))}
             </div>
           </Card>
-        ) : (
+        ) : step === "verify" ? (
           <Card>
-            <button onClick={() => setStep("list")} style={{ background:"none", border:"none", color:C.muted, cursor:"pointer", fontSize:"12px", marginBottom:"14px", display:"flex", alignItems:"center", gap:"5px" }}>
+            <button onClick={() => { setStep("list"); setErr(""); }} style={{ background:"none", border:"none", color:C.muted, cursor:"pointer", fontSize:"12px", marginBottom:"14px", display:"flex", alignItems:"center", gap:"5px" }}>
               ← رجوع للقائمة
             </button>
             <div style={{ display:"flex", gap:"10px", alignItems:"center", padding:"12px", borderRadius:"10px", background:`${CLR[sel.id]}12`, border:`1px solid ${CLR[sel.id]}30`, marginBottom:"18px" }}>
@@ -249,13 +266,34 @@ const Login = ({ onLogin }) => {
               </div>
             </div>
             <div style={{ marginBottom:"14px" }}>
-              <label style={{ fontSize:"10px", color:C.muted, display:"block", marginBottom:"6px", fontWeight:"700" }}>أدخل رقم تليفونك للتأكيد</label>
-              <Inp type="tel" placeholder="01xxxxxxxxx" value={phone} onChange={e => { setPhone(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && verify()} />
+              <label style={{ fontSize:"10px", color:C.muted, display:"block", marginBottom:"6px", fontWeight:"700" }}>١. أدخل رقم تليفونك للتأكيد</label>
+              <Inp type="tel" placeholder="01xxxxxxxxx" value={phone} onChange={e => { setPhone(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && verifyPhone()} />
             </div>
             {err && (
               <div style={{ color:"#f04060", fontSize:"12px", marginBottom:"12px", padding:"8px 10px", background:"#f0406015", borderRadius:"7px", border:"1px solid #f0406028" }}>❌ {err}</div>
             )}
-            <Btn color={CLR[sel.id]} onClick={verify} style={{ width:"100%", textAlign:"center" }}>دخول ⚡</Btn>
+            <Btn color={CLR[sel.id]} onClick={verifyPhone} style={{ width:"100%", textAlign:"center" }}>التالي →</Btn>
+          </Card>
+        ) : (
+          <Card>
+            <button onClick={() => { setStep("verify"); setPassword(""); setErr(""); }} style={{ background:"none", border:"none", color:C.muted, cursor:"pointer", fontSize:"12px", marginBottom:"14px", display:"flex", alignItems:"center", gap:"5px" }}>
+              ← رجوع
+            </button>
+            <div style={{ display:"flex", gap:"10px", alignItems:"center", padding:"12px", borderRadius:"10px", background:`${CLR[sel.id]}12`, border:`1px solid ${CLR[sel.id]}30`, marginBottom:"18px" }}>
+              <Av id={sel.id} sz={42} />
+              <div>
+                <div style={{ fontWeight:"700", fontSize:"14px" }}>{sel.name}</div>
+                <div style={{ fontSize:"11px", color:CLR[sel.id] }}>{RL[sel.role]}</div>
+              </div>
+            </div>
+            <div style={{ marginBottom:"14px" }}>
+              <label style={{ fontSize:"10px", color:C.muted, display:"block", marginBottom:"6px", fontWeight:"700" }}>٢. أدخل كلمة السر</label>
+              <Inp type="password" placeholder="••••" value={password} onChange={e => { setPassword(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && verifyPassword()} />
+            </div>
+            {err && (
+              <div style={{ color:"#f04060", fontSize:"12px", marginBottom:"12px", padding:"8px 10px", background:"#f0406015", borderRadius:"7px", border:"1px solid #f0406028" }}>❌ {err}</div>
+            )}
+            <Btn color={CLR[sel.id]} onClick={verifyPassword} style={{ width:"100%", textAlign:"center" }}>دخول ⚡</Btn>
           </Card>
         )}
       </div>
