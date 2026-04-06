@@ -33,7 +33,7 @@ const MEMBERS = [
   { id:"amr",   name:"Amr Sherif",           phone:"01113801276", role:"team_leader", hours:"5-10",  isAdmin:true },
   { id:"asmaa",  name:"Asmaa",           phone:"0 10 19203325", role:"content",     hours:"5-10" },
   { id:"hassan",  name:"Hassan Wael",          phone:"01000765342", role:"builder",     hours:"10-15" },
-  { id:"mahdy",   name:"Mohamed Mahdy",         phone:"01101891846", role:"builder",     hours:"5-10",  isSubLeader:true, subTeams:["builder"] },
+  { id:"mahdy",   name:"Damn it's Mahdy",         phone:"01101891846", role:"builder",     hours:"5-10",  isSubLeader:true, subTeams:["builder"] },
   { id:"elsayed", name:"Mohamed Elsayed",       phone:"01508783863", role:"builder",     hours:"5-10" },
   { id:"hussein", name:"Hussein Afifi",         phone:"01113023088", role:"sales",       hours:"5-10" },
   { id:"mahmoud", name:"Mahmoud Medhat",        phone:"01014127767", role:"sales",       hours:"10-15", isSubLeader:true, subTeams:["sales","content"] },
