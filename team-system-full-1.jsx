@@ -30,7 +30,8 @@ const RL = { team_leader:"قائد الفريق", builder:"Builder", sales:"Sale
 const RC = { team_leader:"#00c9f7", builder:"#06b6d4", sales:"#f97316", content:"#a855f7", operation:"#22c55e" };
 
 const MEMBERS = [
-  { id:"rawan",   name:"Rawan Alaa",           phone:"01150156437", role:"team_leader", hours:"5-10",  isAdmin:true },
+  { id:"amr",   name:"Amr Sherif",           phone:"01113801276", role:"team_leader", hours:"5-10",  isAdmin:true },
+  { id:"asmaa",  name:"Asmaa",           phone:"0 10 19203325", role:"content",     hours:"5-10" },
   { id:"hassan",  name:"Hassan Wael",          phone:"01000765342", role:"builder",     hours:"10-15" },
   { id:"mahdy",   name:"Mohamed Mahdy",         phone:"01101891846", role:"builder",     hours:"5-10",  isSubLeader:true, subTeams:["builder"] },
   { id:"elsayed", name:"Mohamed Elsayed",       phone:"01508783863", role:"builder",     hours:"5-10" },
@@ -43,8 +44,8 @@ const MEMBERS = [
   { id:"mona",    name:"Mona Ahmad",            phone:"01099287237", role:"operation",   hours:"5-10",  isAdmin:true },
 ];
 
-const AV = { rawan:"RW", hassan:"HW", mahdy:"MM", elsayed:"ME", hussein:"HA", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
-const CLR = { rawan:"#00c9f7", hassan:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
+const AV = { amr:"AS", asmaa:"AS", hassan:"HW", mahdy:"MM", elsayed:"ME", hussein:"HA", mahmoud:"MD", manar_a:"MA", aya:"AY", jana:"JA", mohand:"MH", mona:"MO" };
+const CLR = { amr:"#00c9f7", asmaa:"#a855f7", hassan:"#0ea5e9", mahdy:"#06b6d4", elsayed:"#38bdf8", hussein:"#f97316", mahmoud:"#ea580c", manar_a:"#a855f7", aya:"#9333ea", jana:"#7c3aed", mohand:"#6d28d9", mona:"#22c55e" };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STORAGE
@@ -756,7 +757,7 @@ const AdminDashboard = ({ user, logs, tasks, onAddTask, onDeleteTask, onLogout }
         {/* ═══ TASKS ═══ */}
         {tab === "tasks" && (
           <div className="fade-in">
-            {user.id === "rawan" && (
+            {user.id === "amr" && (
               <Card style={{ marginBottom: "14px" }}>
                 <ST color="#a855f7">إضافة مهمة جديدة للفريق</ST>
                 <div style={{ display:"flex", gap:"10px" }}>
@@ -779,7 +780,7 @@ const AdminDashboard = ({ user, logs, tasks, onAddTask, onDeleteTask, onLogout }
                   {tasks.map(t => (
                     <div key={t.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding: "10px", background:`${C.border}30`, borderRadius:"8px" }}>
                       <div style={{fontSize:"13px"}}>{t.text}</div>
-                      {user.id === "rawan" && (
+                      {user.id === "amr" && (
                         <button onClick={() => onDeleteTask(t.id)} style={{background:"none", border:"none", color:"#f04060", cursor:"pointer", fontSize:"12px", fontWeight:"700", padding:"4px 8px"}}>
                           حذف
                         </button>
